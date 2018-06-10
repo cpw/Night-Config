@@ -1,16 +1,24 @@
-version '3.1.0'
+version '3.2.0'
 description 'Powerful Java configuration library'
 
 apply plugin: 'maven'
-apply plugin: 'java'
+apply plugin: 'maven-publish'
+apply plugin: 'java-library'
+
+group 'com.electronwill.night-config'
 sourceCompatibility = 1.8
 
 repositories {
 	mavenCentral()
 }
 
+test {
+    useJUnitPlatform()
+}
+
 dependencies {
-	testCompile 'org.junit.jupiter:junit-jupiter-api:5.0.2'
+	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.2.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.2.0'
 }
 
 // Jar files
@@ -21,11 +29,57 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
 
 task sourcesJar(type: Jar) {
 	classifier = 'sources'
-	from sourceSets.main.java.srcDirs
+	from sourceSets.main.allSource
 }
 
 artifacts {
+    archives jar
 	archives sourcesJar
 	archives javadocJar
 }
 
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifact sourcesJar
+            pom {
+                name = 'NightConfig Core'
+                description = 'Core config library'
+                url = 'https://github.com/cpw/Night-Config'
+                scm {
+                    url = 'https://github.com/cpw/Night-Config'
+                    connection = 'scm:git:git://github.com/cpw/Night-Config.git'
+                    developerConnection = 'scm:git:git@github.com:cpw/Night-Config.git'
+                }
+                issueManagement {
+                    system = 'github'
+                    url = 'https://github.com/cpw/Night-Config/issues'
+                }
+
+                licenses {
+                    license {
+                        name = 'LGPLv3.0'
+                        url = 'https://www.gnu.org/licenses/lgpl-3.0.txt'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id = 'Electron Will'
+                        name = 'Electron Will'
+                    }
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            credentials {
+                username project.properties.forgeMavenUser?:'fake'
+                password project.properties.forgeMavenPassword?:'news'
+            }
+            url "http://files.minecraftforge.net/maven/manage/upload"
+        }
+    }
+}
